@@ -990,24 +990,24 @@ char checkTerminationCondition()
 {
     if( maximum_number_of_evaluations >= 0 )
     {
-		if( checkNumberOfEvaluationsTerminationCondition() ) {
-			printf ("nfe max\n");
+        if( checkNumberOfEvaluationsTerminationCondition() ) {
+            printf ("nfe max\n");
             return( TRUE );
-		}
+        }
     }
     
     if( use_vtr )
     {
-		if( checkVTRTerminationCondition() ) {
-			printf ("vtr\n");
+        if( checkVTRTerminationCondition() ) {
+            printf ("vtr\n");
             return( TRUE );
-		}
+        }
     }
 
-	if( checkFitnessVarianceTermination() ) {
-		printf ("var\n");
+    if( checkFitnessVarianceTermination() ) {
+        printf ("var\n");
         return( TRUE );
-	}
+    }
 
     return( FALSE );
 }
@@ -1825,11 +1825,10 @@ void run()
 
     updateBestPrevGenSolution();
 
-	int old_nfe = number_of_evaluations, stop_counts = 0, max_stop = 5;
+    int old_nfe = number_of_evaluations, stop_counts = 0, max_stop = 5;
 
     while( !checkTerminationCondition() && stop_counts < max_stop )
     {
-		printf ("gen: %d, nfe: %d\n", number_of_generations, number_of_evaluations);
         if( write_generational_statistics )
             writeGenerationalStatistics();
 
@@ -1844,12 +1843,12 @@ void run()
 
         updateBestPrevGenSolution();
 
-		if (old_nfe == number_of_evaluations)
-			++stop_counts;
-		else
-			stop_counts = 0;
-		
-		old_nfe = number_of_evaluations;
+        if (old_nfe == number_of_evaluations)
+            ++stop_counts;
+        else
+            stop_counts = 0;
+        
+        old_nfe = number_of_evaluations;
     }
     writeRunningTime( (char *) "total_running_time.dat" );
 

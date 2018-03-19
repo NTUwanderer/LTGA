@@ -1827,7 +1827,7 @@ void run()
 
     updateBestPrevGenSolution();
 
-	int old_nfe = number_of_evaluations, stop_counts = 0, max_stop = 5;
+    int old_nfe = number_of_evaluations, stop_counts = 0, max_stop = 5;
 
     while( !checkTerminationCondition() && stop_counts < max_stop )
     {
@@ -1847,12 +1847,12 @@ void run()
 
         updateBestPrevGenSolution();
 
-		if (old_nfe == number_of_evaluations)
-			++stop_counts;
-		else
-			stop_counts = 0;
-		
-		old_nfe = number_of_evaluations;
+        if (old_nfe == number_of_evaluations)
+            ++stop_counts;
+        else
+            stop_counts = 0;
+        
+        old_nfe = number_of_evaluations;
     }
     writeRunningTime( (char *) "total_running_time.dat" );
 
