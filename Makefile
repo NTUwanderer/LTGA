@@ -19,12 +19,12 @@ TLIB = -lm
 #-----File Dependencies----------------------
 
 
-SRC = $(SRC1)
+SRC = $(SRC1) $(SRC2)
 # SRC = $(SRC1) $(SRC2) $(SRC3)
 
-SRC1 = LTGA.cpp spin.cpp
+SRC1 = LTGA.cpp spin.cpp mkp.cpp
 
-SRC2 = sweep.cpp spin.cpp
+SRC2 = sweep.cpp spin.cpp mkp.cpp
 
 # SRC3 = genZobrist.cpp
 
