@@ -49,6 +49,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include "spin.h"
+#include "mkp.h"
 #include "statistics.h"
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
@@ -75,6 +76,7 @@ int numberOfInstalledProblems( void );
 void installedProblemEvaluation( int index, char *parameters, double *objective_value, double *constraint_value );
 void onemaxFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void spinGlassFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
+void mkpFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void deceptiveTrap4TightEncodingFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void deceptiveTrap4LooseEncodingFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void deceptiveTrap5TightEncodingFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
@@ -134,7 +136,7 @@ int       problem_index,                        /* The index of the optimization
           number_of_parameters,                 /* The number of parameters to be optimized. */
           number_of_generations,                /* The current generation count. */
           population_size,                      /* The size of the population. */
-          spin_instance_index,                  /* The index of the spin glass instance. */
+          instance_index,                       /* The index of the spin glass instance. */
           selection_size,                       /* The size of the selection. */
           offspring_size,                       /* The size of the offspring. */
           maximum_number_of_evaluations,        /* The maximum number of evaluations. */
@@ -162,6 +164,7 @@ int64_t   random_seed,                          /* The seed used for the random-
           random_seed_changing;                 /* Internally used variable for randomly setting a random seed. */
 
 SPINinstance mySpinGlassParams;
+MKPinstance myMKPParams;
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 
@@ -328,7 +331,7 @@ void parseParameters( int argc, char **argv, int *index )
     noError = noError && sscanf( argv[*index+4], "%lf", &vtr );
     noError = noError && sscanf( argv[*index+5], "%lf", &fitness_variance_tolerance );
     if ((argc - *index) == 7) {
-        noError = noError && sscanf( argv[*index+6], "%d", &spin_instance_index );
+        noError = noError && sscanf( argv[*index+6], "%d", &instance_index );
     }
 
     if( !noError )
@@ -497,6 +500,7 @@ char *installedProblemName( int index )
         case    3: return( (char *) "Deceptive Trap 5 - Tight Encoding" );
         case    4: return( (char *) "Deceptive Trap 5 - Loose Encoding" );
         case    5: return( (char *) "SPIN Glass" );
+        case    6: return( (char *) "Multidimensional knapsack problem" );
     }
 
     return( NULL );
@@ -540,6 +544,7 @@ void installedProblemEvaluation( int index, char *parameters, double *objective_
         case    3: deceptiveTrap5TightEncodingFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
         case    4: deceptiveTrap5LooseEncodingFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
         case    5: spinGlassFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
+        case    6: mkpFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
     }
 
     if( vtr_hit_has_happened == 0 )
@@ -592,6 +597,20 @@ void spinGlassFunctionProblemEvaluation( char *parameters, double *objective_val
     delete []x;
 
     *objective_value  = result;
+    *constraint_value = 0;
+}
+
+void mkpFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value )
+{
+    int x[number_of_parameters];
+    double result; 
+
+    for (int i = 0; i < number_of_parameters; ++i) 
+        x[i] = (parameters[i] == TRUE) ? 1 : 0;
+    
+    result = evaluateMKP(x, &myMKPParams);
+
+    *objective_value = result;
     *constraint_value = 0;
 }
 
@@ -1905,11 +1924,22 @@ int main( int argc, char **argv )
     // run();
     if (problem_index == 5) {
         char filename[200];
-        sprintf(filename, "./SPIN/%d/%d_%d", number_of_parameters, number_of_parameters, spin_instance_index);
+        sprintf(filename, "./SPIN/%d/%d_%d", number_of_parameters, number_of_parameters, instance_index);
         printf("Loading: %s\n", filename);
         loadSPIN(filename, &mySpinGlassParams);
         vtr = mySpinGlassParams.opt;
     }
+    else if (problem_index == 6) {
+        char filename[200];
+        sprintf(filename, "../DSMGA-II-TwoEdge/All-MKP-Instances/sac94/weish/weish%02d.dat", instance_index);
+        printf("Loading: %s\n", filename);
+        loadMKP(filename, &myMKPParams);
+        number_of_parameters = myMKPParams.var;
+        vtr = myMKPParams.opt;
+        if (vtr == 0) /* optimal not applicable */
+            use_vtr = 0;
+    }
+
 
 
     Statistics stGen, stNFE;

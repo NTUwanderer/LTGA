@@ -50,6 +50,7 @@
 #include <sys/time.h>
 #include "spin.h"
 #include "mkp.h"
+#include "statistics.h"
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 
@@ -1010,7 +1011,7 @@ char checkTerminationCondition()
     if( maximum_number_of_evaluations >= 0 )
     {
         if( checkNumberOfEvaluationsTerminationCondition() ) {
-            printf ("nfe max\n");
+            //printf ("nfe max\n");
             return( TRUE );
         }
     }
@@ -1018,13 +1019,13 @@ char checkTerminationCondition()
     if( use_vtr )
     {
         if( checkVTRTerminationCondition() ) {
-            printf ("vtr\n");
+            //printf ("vtr\n");
             return( TRUE );
         }
     }
 
     if( checkFitnessVarianceTermination() ) {
-        printf ("var\n");
+        //printf ("var\n");
         return( TRUE );
     }
 
@@ -1935,7 +1936,27 @@ int main( int argc, char **argv )
             use_vtr = 0;
     }
 
-    run();
+    int failNum = 0;
+    Statistics stGen, stNFE;
+    stGen.reset();
+    stNFE.reset();
+
+    for (int i = 0; i < 10; ++i) {
+        run();
+
+        if (!checkVTRTerminationCondition()) {
+            ++failNum;
+            printf ("-");
+        }
+        else {
+            stGen.record(number_of_generations);
+            stNFE.record(number_of_evaluations);
+            printf ("+");
+        }
+    }
+    printf ("\n");
+
+    printf ("gen: %f\nNFE: %f\nnfe stdev: %f\nfailNum: %i\n", stGen.getMean(), stNFE.getMean(), stNFE.getStdev(), failNum);
 
     return( 0 );
 }
