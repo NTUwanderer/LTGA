@@ -22,9 +22,9 @@ TLIB = -lm
 SRC = $(SRC1) $(SRC2)
 # SRC = $(SRC1) $(SRC2) $(SRC3)
 
-SRC1 = LTGA.cpp spin.cpp mkp.cpp
+SRC1 = LTGA.cpp spin.cpp sat.cpp mkp.cpp
 
-SRC2 = sweep.cpp spin.cpp mkp.cpp
+SRC2 = sweep.cpp spin.cpp sat.cpp mkp.cpp
 
 # SRC3 = genZobrist.cpp
 
@@ -56,3 +56,4 @@ clean:
 # DO NOT DELETE
 
 spin.o: spin.h
+sat.o: sat.h

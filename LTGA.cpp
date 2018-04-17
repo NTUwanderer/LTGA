@@ -48,12 +48,15 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+#include <iostream>
 #include "spin.h"
+#include "sat.h"
 #include "mkp.h"
 #include "statistics.h"
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
 
 
+using namespace std;
 
 
 
@@ -76,6 +79,7 @@ int numberOfInstalledProblems( void );
 void installedProblemEvaluation( int index, char *parameters, double *objective_value, double *constraint_value );
 void onemaxFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void spinGlassFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
+void satGlassFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void mkpFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void deceptiveTrap4TightEncodingFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
 void deceptiveTrap4LooseEncodingFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value );
@@ -163,6 +167,7 @@ double   *objective_values,                     /* Objective values for populati
 int64_t   random_seed,                          /* The seed used for the random-number generator. */
           random_seed_changing;                 /* Internally used variable for randomly setting a random seed. */
 
+SATinstance mySatParams;
 SPINinstance mySpinGlassParams;
 MKPinstance myMKPParams;
 /*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
@@ -494,6 +499,7 @@ char *installedProblemName( int index )
         case    4: return( (char *) "Deceptive Trap 5 - Loose Encoding" );
         case    5: return( (char *) "SPIN Glass" );
         case    6: return( (char *) "Multidimensional knapsack problem" );
+        case    7: return( (char *) "SAT Glass" );
     }
 
     return( NULL );
@@ -538,6 +544,7 @@ void installedProblemEvaluation( int index, char *parameters, double *objective_
         case    4: deceptiveTrap5LooseEncodingFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
         case    5: spinGlassFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
         case    6: mkpFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
+        case    7: satGlassFunctionProblemEvaluation( parameters, objective_value, constraint_value ); break;
     }
 
     if( vtr_hit_has_happened == 0 )
@@ -604,6 +611,27 @@ void mkpFunctionProblemEvaluation( char *parameters, double *objective_value, do
     result = evaluateMKP(x, &myMKPParams);
 
     *objective_value = result;
+    *constraint_value = 0;
+}
+
+void satGlassFunctionProblemEvaluation( char *parameters, double *objective_value, double *constraint_value )
+{
+
+    int *x = new int[number_of_parameters];
+    double result;
+
+    for (int i = 0; i < number_of_parameters; i++) {
+        if (parameters[i] == TRUE)
+            x[i] = 1;
+        else
+            x[i] = -1;
+    }
+
+    result = evaluateSAT(x, &mySatParams);
+
+    delete []x;
+
+    *objective_value  = result;
     *constraint_value = 0;
 }
 
@@ -1934,6 +1962,13 @@ int main( int argc, char **argv )
         vtr = myMKPParams.opt;
         if (vtr == 0) /* optimal not applicable */
             use_vtr = 0;
+    }
+    else if (problem_index == 7) {
+        char filename[200];
+        sprintf(filename, "./SAT/uf%d/uf%d-0%d.cnf", number_of_parameters, number_of_parameters, instance_index);
+        printf("Loading: %s\n", filename);
+        loadSAT(filename, &mySatParams);
+        vtr = 0;
     }
 
     int failNum = 0;
